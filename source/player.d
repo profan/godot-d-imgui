@@ -79,18 +79,6 @@ class Player : GodotScript!KinematicBody {
     @Method
     void _input(InputEvent ev) {
 
-        /*
-        if (InputEventMouseButton mouse_ev = cast(InputEventMouseButton) ev) {
-            if (!focused) {
-                focused = true;
-                Input.setMouseMode(Input.MouseMode.mouseModeCaptured);
-                auto pos = mouse_ev.position;
-                last_mouse_pos = pos;
-                last_mouse_delta = Vector2(0.0, 0.0);
-            }
-        }
-        */
-
         if (InputEventMouseMotion mouse_ev = cast(InputEventMouseMotion)ev) {
             if (focused) {
                 auto pos = mouse_ev.position;
@@ -147,22 +135,6 @@ class Player : GodotScript!KinematicBody {
             }
 
             if (last_mouse_delta != Vector3.init) {
-                
-                /*
-                auto t = transform;
-                auto lefto = transform.left;
-                auto x_rot = last_mouse_delta.x / 200;
-                auto z_rot = last_mouse_delta.y / 200;
-
-                auto quat_x = Quat(-t.up, x_rot);
-                auto quat_z = Quat(-t.left, z_rot);
-                auto quat_res = quat_z * quat_x;
-                
-                Vector3 axis;
-                float angle;
-                quat_res.getAxisAndAngle(axis, angle);
-                rotate(axis, angle);
-                */
 
                 auto t = transform;
                 auto x_rot = last_mouse_delta.x / 200;
@@ -178,44 +150,14 @@ class Player : GodotScript!KinematicBody {
                     pitch = -PI_2 + 0.001;
                 }
 
-                /*
-                auto quat_x = Quat(-t.up, x_rot);
-                auto quat_y = Quat(t.fwd, 0);
-                auto quat_z = Quat(-t.left, z_rot);
-                auto quat_res = quat_z * quat_y * quat_x;
-                
-                Vector3 axis;
-                float angle;
-                quat_res.getAxisAndAngle(axis, angle);
-                rotate(axis, angle);
-                */
-
                 rotation = Vector3(0, yaw, 0);
                 camera.rotation = Vector3(pitch, 0, 0);
-                // rotateX(pitch);
-
-                // Vector3 axis;
-                // float angle;
-                // quat_res.getAxisAndAngle(axis, angle);
-                // rotateObjectLocal(axis, angle);
-                // transform = transform.rotated(axis, angle);
-                // rotate(-t.up, x_rot);
-                // rotateObjectLocal(-t.up.normalized, x_rot);
-                // rotateObjectLocal(-t.left.normalized, z_rot);
                 last_mouse_delta.x = 0;
                 last_mouse_delta.y = 0;
-                // rotateObjectLocal(transform.up, z_rot);
+
             }
 
         }
-        
-
-        /*
-        auto t = transform;
-        t.basis = t.basis.rotated(transform.fwd, 3.14 / 64);
-        t.basis = t.basis.rotated(transform.left, 3.14 / 64);
-        transform = t;
-        */
 
         import std.algorithm : max, min;
         auto clamped_velocity = min(MAX_MOVEMENT_SPEED, (vel + velocity).length);
