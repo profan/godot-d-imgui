@@ -101,11 +101,15 @@ class Player : GodotScript!KinematicBody {
         static bool showDemoWindow = true;
         import derelict.imgui.imgui;
         if (igGetFrameCount() > 0) {
+
+            igShowDemoWindow(&showDemoWindow);
+
             igBegin("Player");
             igInputFloat("gravity", &GRAVITON);
             igInputFloat("max movement speed", &MAX_MOVEMENT_SPEED);
             igInputFloat("movement speed", &MOVEMENT_SPEED);
             igEnd();
+            
         }
     }
 
