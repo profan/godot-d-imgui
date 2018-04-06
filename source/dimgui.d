@@ -72,12 +72,12 @@ class ImguiContext : GodotScript!Spatial {
 	// if these don't match, we done fucked up
 	static assert(Keys.length == ImGuiKey_COUNT);
 
-	bool[3] mouse_buttons_pressed;
-	float scroll_wheel = 0.0f;
-
 	// godot related resources
 	Ref!ImageTexture font_texture;
 	@OnReady!"ig" ImmediateGeometry ig;
+
+	// WHEELU
+	float scroll_wheel = 0.0f;
 
 	@Method
 	void _ready() {
@@ -99,6 +99,17 @@ class ImguiContext : GodotScript!Spatial {
 	@Method
 	void _process(float delta) {
 		newFrame(delta);
+	}
+
+	@Method
+	void _input(InputEvent ev) {
+		if (InputEventMouseButton btn = cast(InputEventMouseButton) ev) {
+			if (btn.buttonIndex == buttonWheelUp && btn.pressed) {
+				scroll_wheel += 1;
+			} else if (btn.buttonIndex == buttonWheelDown && btn.pressed) {
+				scroll_wheel -= 1;
+			}
+		}
 	}
 
 	/*
@@ -302,7 +313,8 @@ class ImguiContext : GodotScript!Spatial {
 			ImGuiIO_AddInputCharacter(cast(ulong)65);
 		}
 
-		io.MouseWheel = scroll_wheel;
+		io.MouseWheel += scroll_wheel;
+		scroll_wheel = 0;
 
 		// finally call back into imgui
 		igNewFrame();

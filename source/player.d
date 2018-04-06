@@ -88,9 +88,10 @@ class Player : GodotScript!KinematicBody {
         }
 
         if (InputEventKey key = cast(InputEventKey) ev) {
-            if (key.isAction("ui_cancel")) {
-                Input.setMouseMode(Input.MouseMode.mouseModeVisible);
+            if (key.isAction("ui_cancel") && key.pressed) {
                 focused = !focused;
+                if (!focused) Input.setMouseMode(Input.MouseMode.mouseModeVisible);
+                else Input.setMouseMode(Input.MouseMode.mouseModeCaptured);
             }
         }
 
@@ -109,7 +110,7 @@ class Player : GodotScript!KinematicBody {
             igInputFloat("max movement speed", &MAX_MOVEMENT_SPEED);
             igInputFloat("movement speed", &MOVEMENT_SPEED);
             igEnd();
-            
+
         }
     }
 
