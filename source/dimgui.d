@@ -77,9 +77,6 @@ class ImguiContext : GodotScript!Spatial {
 
 	// godot related resources
 	Ref!ImageTexture font_texture;
-
-	RID font_tex_id;
-
 	@OnReady!"ig" ImmediateGeometry ig;
 
 	@Method
@@ -92,12 +89,10 @@ class ImguiContext : GodotScript!Spatial {
 		AABB aabb = AABB(Vector3(0, 0, 0), Vector3(1, 1, 1));
 		auto grown_aabb = aabb.grow(1000000);
 		vs.instanceSetCustomAabb(ig._getVisualInstanceRid(), grown_aabb);
-		
-		imgui_mesh = memnew!ArrayMesh();
-		print("IMGUI READY");
 
 		// init us
 		initialize();
+		print("IMGUI READY");
 
 	}
 
@@ -180,9 +175,6 @@ class ImguiContext : GodotScript!Spatial {
 		import godot.visualserver : VisualServer, VisualServerSingleton;
 
 		VisualServerSingleton vs = VisualServer;
-
-		RID tex_id = vs.textureCreate();
-		font_tex_id = tex_id;
 
 		ubyte* pixels;
 		int width, height;
