@@ -1,0 +1,26 @@
+{
+    "rdocCaptureSettings": 1,
+    "settings": {
+        "AutoStart": false,
+        "CmdLine": "",
+        "Environment": [
+        ],
+        "Executable": "/usr/bin/godot3.0.2",
+        "Inject": false,
+        "Options": {
+            "APIValidation": 0,
+            "AllowFullscreen": 1,
+            "AllowVSync": 0,
+            "CaptureAllCmdLists": 0,
+            "CaptureCallstacks": 0,
+            "CaptureCallstacksOnlyDraws": 0,
+            "DebugOutputMute": 1,
+            "DelayForDebugger": 0,
+            "HookIntoChildren": 0,
+            "RefAllResources": 0,
+            "SaveAllInitials": 0,
+            "VerifyMapWrites": 0
+        },
+        "WorkingDir": "/home/profan/Dropbox/Projects/Godot/three-dlang"
+    }
+}

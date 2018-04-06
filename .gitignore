@@ -1,0 +1,17 @@
+.dub
+docs.json
+__dummy.html
+docs/
+three-dlang.so
+three-dlang.dylib
+three-dlang.dll
+three-dlang.a
+three-dlang.lib
+three-dlang-test-*
+*.exe
+*.o
+*.obj
+*.lst
+*.so.import
+.vscode
+three-dlang

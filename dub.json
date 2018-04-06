@@ -1,0 +1,35 @@
+{
+	"name": "three-dlang",
+	"authors": [
+		"Robin Hübner"
+	],
+	"dependencies": {
+		"derelict-imgui": "~>0.10.0",
+		"godot-d": "~>0.0.2"
+	},
+	"description": "A minimal D application.",
+	"copyright": "Copyright © 2018, Robin Hübner",
+	"license": "proprietary",
+	"subPackages": [
+		{
+			"name": "32",
+			"targetType": "dynamicLibrary",
+			"targetName": "three-dlang-32",
+			"dflags": ["-g"],
+			"dependencies": {
+				"derelict-imgui": "~>0.10.0",
+				"godot-d": "~>0.0.2"
+			}
+		},
+		{
+			"name": "64",
+			"targetType": "dynamicLibrary",
+			"targetName": "three-dlang-64",
+			"dflags": ["-g", "-m64"],
+			"dependencies": {
+				"derelict-imgui": "~>0.10.0",
+				"godot-d": "~>0.0.2"
+			}
+		}
+	]
+}
