@@ -76,11 +76,6 @@ class ImguiContext : GodotScript!Spatial {
 	float scroll_wheel = 0.0f;
 
 	// godot related resources
-	Ref!ArrayMesh imgui_mesh;
-	PoolVector3Array vertex_array;
-	PoolIntArray index_array;
-	PoolColorArray color_array;
-	PoolVector3Array uv_array;
 	Ref!ImageTexture font_texture;
 
 	RID font_tex_id;
@@ -92,15 +87,11 @@ class ImguiContext : GodotScript!Spatial {
 
 		import godot.visualserver;
 		VisualServerSingleton vs = VisualServer;
-		Image img = vs.textureGetData(vs.getWhiteTexture());
 
 		// make ImmediateGeometry AABB absurdly large, so that it is not culled when we look away from where the IG node is located in space
 		AABB aabb = AABB(Vector3(0, 0, 0), Vector3(1, 1, 1));
 		auto grown_aabb = aabb.grow(1000000);
 		vs.instanceSetCustomAabb(ig._getVisualInstanceRid(), grown_aabb);
-
-		// font_texture = memnew!ImageTexture();
-		// font_texture.createFromImage(img);
 		
 		imgui_mesh = memnew!ArrayMesh();
 		print("IMGUI READY");
@@ -205,7 +196,6 @@ class ImguiContext : GodotScript!Spatial {
 		foreach (i; 0..bytes_to_copy) {
 			bytes.append(pixels[i]);
 		}
-		print("bytes size: ", bytes.length);
 
 		Ref!Image tex_img = memnew!Image();
 		tex_img.createFromData(width, height, false, Image.Format.formatRgba8, bytes);
