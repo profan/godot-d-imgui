@@ -159,8 +159,8 @@ class Player : GodotScript!KinematicBody {
             igText(" - vertices: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoVerticesInFrame));
             igText(" - drawcalls: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoDrawCallsInFrame));
             igText(" - material changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoMaterialChangesInFrame));
-            igText(" - shader changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoShaderChangesInFrame));
             igText(" - surface changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoSurfaceChangesInFrame));
+            igText(" - shader changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoShaderChangesInFrame));
             if (OS.isWindowFullscreen()) {
                 if (igButton("go windowed")) {
                     OS.setWindowFullscreen(false);

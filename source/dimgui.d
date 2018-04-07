@@ -176,6 +176,8 @@ class ImguiContext : GodotScript!Spatial {
 		io.SetClipboardTextFn = bindDelegate(&setClipboardText);
 		io.GetClipboardTextFn = bindDelegate(&getClipboardText);
 
+		io.MouseDoubleClickTime = 1;
+
 		createDeviceObjects();
 
 	}
