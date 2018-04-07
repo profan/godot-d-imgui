@@ -67,6 +67,9 @@ class Player : GodotScript!KinematicBody {
     Vector3 direction;
     Vector2 last_mouse_pos;
     Vector2 last_mouse_delta;
+
+    // original
+    Transform original_transform;
     import std.math : PI_4;
     float yaw = 0.0f, pitch = 0.0f;
 
@@ -77,6 +80,8 @@ class Player : GodotScript!KinematicBody {
 
     @Method
     void _ready() {
+        collisionSafeMargin = 0.0015;
+        original_transform = transform;
     }
 
     @Method
@@ -116,21 +121,81 @@ class Player : GodotScript!KinematicBody {
 
     }
 
+    static float rad2deg(float r) {
+        import std.math : PI;
+        return r * 180 / PI;
+    }
+
     @Method
     void _process(float delta) {
+
         static bool showDemoWindow = true;
+
         import derelict.imgui.imgui;
         if (igGetFrameCount() > 0) {
 
-            igShowDemoWindow(&showDemoWindow);
+            // igShowDemoWindow(&showDemoWindow);
+
+            static long current_screen;
+            static Vector2 last_window_size;
+            static Vector2 last_window_pos;
+            static float max_gravity = 8.0f;
+            static bool process_status;
+
+            igBegin("Godot", &process_status, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
+            igText("frametime: %2.2f ms (%.1f FPS)", 1000.0f / igGetIO().Framerate, igGetIO().Framerate);
+            float dynamic_mem_mbytes = (OS.getDynamicMemoryUsage() / 1000.0) / 1000.0f;
+            igText("dynamic memory usage: %2.2f MB", dynamic_mem_mbytes);
+            float static_mem_mbytes = (OS.getStaticMemoryUsage() / 1000.0) / 1000.0f;
+            igText("static memory usage: %2.2f MB", static_mem_mbytes);
+            float static_mem_mbytes_peak = (OS.getStaticMemoryPeakUsage() / 1000.0) / 1000.0f;
+            igText("static memory usage - peak: %2.2f MB ", static_mem_mbytes_peak);
+            auto screen_size = OS.getScreenSize();
+            igText("screen size: %d x %d", cast(int)screen_size.x, cast(int)screen_size.y);
+            Viewport vp = owner.getViewport();
+            auto vp_size = vp.size;
+            igText("viewport size: %d x %d", cast(int)vp_size.x, cast(int)vp_size.y);
+            igText(" - objects: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoObjectsInFrame));
+            igText(" - vertices: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoVerticesInFrame));
+            igText(" - drawcalls: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoDrawCallsInFrame));
+            igText(" - material changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoMaterialChangesInFrame));
+            igText(" - shader changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoShaderChangesInFrame));
+            igText(" - surface changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoSurfaceChangesInFrame));
+            if (OS.isWindowFullscreen()) {
+                if (igButton("go windowed")) {
+                    OS.setWindowFullscreen(false);
+                    OS.setWindowSize(last_window_size);
+                    OS.setWindowPosition(last_window_pos);
+                }
+            } else {
+                if (igButton("go fullscreen")) {
+                    last_window_size = OS.getWindowSize();
+                    last_window_pos = OS.getWindowPosition();
+                    current_screen = OS.getCurrentScreen();
+                    last_window_pos.x = last_window_pos.x + (1920 * current_screen);
+                    OS.setWindowFullscreen(true);
+                }
+            }
+            igEnd();
 
             static bool opened = true;
-            igBegin("Player", &opened, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
-            igSliderFloat("gravity", &GRAVITON, 0.0f, 10.0);
+            igBegin("Player", &opened, ImGuiWindowFlags_AlwaysAutoResize);
+            igInputFloat3("player position", owner.transform.origin, -1, ImGuiInputTextFlags_ReadOnly);
+            igInputFloat3("player velocity", velocity.coord);
+            igInputFloat("max gravity", &max_gravity);
+            igSliderFloat("gravity", &GRAVITON, 0.0f, max_gravity);
             igSliderFloat("max movement speed", &MAX_MOVEMENT_SPEED, 0.0f, 100.0f);
-            igSliderFloat("movement speed", &MOVEMENT_SPEED, 0.0f, 100.0);
+            igSliderFloat("movement speed", &MOVEMENT_SPEED, 0.0f, MAX_MOVEMENT_SPEED);
             igSliderFloat("jump height", &JUMP_HEIGHT, 0.0f, 64.0f);
-            igSliderFloat("friction", &FRICTION, 0.0f, 5.0f);
+            igSliderFloat("friction", &FRICTION, 0.0f, 2.0f);
+            igInputFloat3("camera origin", camera.transform.origin, -1, ImGuiInputTextFlags_ReadOnly);
+            igValueBool("crouching", Input.isActionPressed(PlayerActions.Crouch));
+            igValueBool("is on floor", isOnFloor);
+            igValueFloat("camera pitch", rad2deg(pitch) % 360);
+            igValueFloat("camera yaw", rad2deg(yaw) % 360);
+            igValueFloat("collision safe margin", collisionSafeMargin);
+            bool do_reset = igButton("reset player position");
+            if (do_reset) transform = original_transform;
             igEnd();
 
         }
@@ -159,6 +224,12 @@ class Player : GodotScript!KinematicBody {
 
             if (Input.isActionJustPressed(PlayerActions.Jump) && isOnFloor()) {
                 vel += Vector3(0, 1, 0) * JUMP_HEIGHT;
+            }
+
+            if (Input.isActionJustPressed(PlayerActions.Crouch)) {
+                camera.transform = Transform(camera.transform.basis, Vector3(0.0, 0.5, 0.0));
+            } else if (Input.isActionJustReleased(PlayerActions.Crouch)) {
+                camera.transform = Transform(camera.transform.basis, Vector3(0.0, 1.0, 0.0));
             }
 
             if (last_mouse_delta != Vector3.init) {
@@ -200,6 +271,8 @@ class Player : GodotScript!KinematicBody {
         velocity = clamped_combined;
         velocity.x /= FRICTION;
         velocity.z /= FRICTION;
+
+        if (isOnFloor) velocity.y = 0;
 
     }
 

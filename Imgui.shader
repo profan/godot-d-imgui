@@ -45,7 +45,7 @@ void vertex() {
 // this is kind of awful and it would be nice if there is a better way
 bool is_within_clip_rect(vec4 clip_rect, vec2 point) {
 	return (point.x >= clip_rect.x && point.x <= clip_rect.z &&
-			point.y >= (clip_rect.w - clip_rect.y) / 6.0 && point.y <= clip_rect.w);
+			point.y >= clip_rect.y && point.y <= clip_rect.w);
 }
 
 void fragment() {

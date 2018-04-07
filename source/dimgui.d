@@ -52,7 +52,8 @@ bool isPointInside(ImVec4* clip_rect, ref ImVec2 pos) {
 			pos.y >= clip_rect.y && pos.y <= clip_rect.w);
 }
 
-class ImguiContext : GodotScript!Spatial {	import godot.globalconstants;
+import godot.globalconstants;
+class ImguiContext : GodotScript!Spatial {
 	
 	immutable int[] Keys = [
 		keyTab, 		// ImGuiKey_Tab
@@ -116,8 +117,8 @@ class ImguiContext : GodotScript!Spatial {	import godot.globalconstants;
 		auto vp_size = owner.getViewport().size;
 		float width = vp_size.x;
 		float height = vp_size.y;
-		igSliderFloat("clip_factor", &clip_factor, 0.0f, 20.0f);
-		igSliderFloat("clip_offset", &clip_offset, -height, height);
+		// igSliderFloat("clip_factor", &clip_factor, 0.0f, 20.0f);
+		// igSliderFloat("clip_offset", &clip_offset, -height, height);
 
 	}
 
@@ -320,7 +321,6 @@ class ImguiContext : GodotScript!Spatial {	import godot.globalconstants;
 			if (igIsAnyItemActive() && !igIsMouseDown(0)) {
 
 				foreach (sc; pressed_keys[0..pressed_index]) {
-					print("pressed: ", sc);
 					if (sc >= 65 && sc <= 90) {
 						if (!Input.isKeyPressed(keyShift)) {
 							sc += 32;
