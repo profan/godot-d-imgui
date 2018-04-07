@@ -81,6 +81,7 @@ _sections_unfolded = [ "Collision", "Transform" ]
 
 [node name="plane_shape" type="CollisionShape" parent="plane/coll" index="0"]
 
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0309076, -0.0419102, -0.0130262 )
 shape = SubResource( 2 )
 disabled = false
 

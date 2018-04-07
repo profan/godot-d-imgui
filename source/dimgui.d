@@ -44,10 +44,15 @@ import godot.mesh;
 import godot;
 
 import globals : g_focused;
+import derelict.imgui.imgui;
 
-class ImguiContext : GodotScript!Spatial {
-    import derelict.imgui.imgui;
-	import godot.globalconstants;
+pragma(inline) nothrow @nogc
+bool isPointInside(ImVec4* clip_rect, ref ImVec2 pos) {
+	return (pos.x >= clip_rect.x && pos.x <= clip_rect.z &&
+			pos.y >= clip_rect.y && pos.y <= clip_rect.w);
+}
+
+class ImguiContext : GodotScript!Spatial {	import godot.globalconstants;
 	
 	immutable int[] Keys = [
 		keyTab, 		// ImGuiKey_Tab
@@ -83,6 +88,10 @@ class ImguiContext : GodotScript!Spatial {
 	ubyte[16] pressed_keys;
 	ubyte pressed_index;
 
+	// DEBUG CLIPPING
+	float clip_factor = 1.0f;
+	float clip_offset = 0.0f;
+
 	@Method
 	void _ready() {
 
@@ -103,6 +112,13 @@ class ImguiContext : GodotScript!Spatial {
 	@Method
 	void _process(float delta) {
 		newFrame(delta);
+
+		auto vp_size = owner.getViewport().size;
+		float width = vp_size.x;
+		float height = vp_size.y;
+		igSliderFloat("clip_factor", &clip_factor, 0.0f, 20.0f);
+		igSliderFloat("clip_offset", &clip_offset, -height, height);
+
 	}
 
 	@Method
@@ -205,6 +221,12 @@ class ImguiContext : GodotScript!Spatial {
 		float width = vp_size.x;
 		float height = vp_size.y;
 
+		import godot.shadermaterial;
+		Ref!ShaderMaterial sm = cast(Ref!ShaderMaterial)ig.getMaterialOverride();
+		sm.setShaderParam("viewport_size", vp_size);
+		sm.setShaderParam("clip_factor", clip_factor);
+		sm.setShaderParam("clip_offset", clip_offset);
+
 		ig.clear();
 		foreach (n; 0..data.CmdListsCount) {
 
@@ -221,6 +243,7 @@ class ImguiContext : GodotScript!Spatial {
 
 			foreach (i; 0..cmd_count) {
 				
+				bool skip = false;
 				ImDrawCmd* pcmd = ImDrawList_GetCmdPtr(cmd_list, i);
 
 				if (pcmd.UserCallback) {
@@ -229,12 +252,8 @@ class ImguiContext : GodotScript!Spatial {
 
 					// bind texture, scissor, draw command here
 					if (pcmd.TextureId != null) {
-						import godot.shadermaterial;
-						Ref!ShaderMaterial sm = cast(Ref!ShaderMaterial)ig.getMaterialOverride();
 						sm.setShaderParam("font_texture", Variant(font_texture));
 					} else {
-						import godot.shadermaterial;
-						Ref!ShaderMaterial sm = cast(Ref!ShaderMaterial)ig.getMaterialOverride();
 						sm.setShaderParam("font_texture", Variant(null));
 					}
 
@@ -243,6 +262,9 @@ class ImguiContext : GodotScript!Spatial {
 						auto vtx = vertices[indices[idx_buffer_offset + e_i]];
 						ig.addVertex(Vector3(vtx.pos.x * (2.0 / vp_size.x) - 1, vtx.pos.y  * (-2.0 / vp_size.y) + 1, 0.0));
 						ig.setUv(Vector2(vtx.uv.x, vtx.uv.y));
+						// store scissor rect x, y (top left) in Normal and z, w (bottom right) in Uv2
+						ig.setNormal(Vector3(pcmd.ClipRect.x, pcmd.ClipRect.y, 0.0f));
+						ig.setUv2(Vector2(pcmd.ClipRect.z, pcmd.ClipRect.w));
 						
 						ubyte[4] c = (cast(ubyte*)(&vtx.col))[0..4];
 						float[4] col = [c[0] / 255.0, c[1] / 255.0, c[2] / 255.0, c[3] / 255.0];
@@ -297,7 +319,13 @@ class ImguiContext : GodotScript!Spatial {
 
 			if (igIsAnyItemActive() && !igIsMouseDown(0)) {
 
-				foreach (sc; pressed_keys) {
+				foreach (sc; pressed_keys[0..pressed_index]) {
+					print("pressed: ", sc);
+					if (sc >= 65 && sc <= 90) {
+						if (!Input.isKeyPressed(keyShift)) {
+							sc += 32;
+						}
+					}
 					ImGuiIO_AddInputCharacter(cast(ubyte)sc);
 				}
 

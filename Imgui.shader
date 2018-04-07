@@ -2,6 +2,10 @@ shader_type spatial;
 render_mode cull_disabled, depth_test_disable, skip_vertex_transform, world_vertex_coords, unshaded;
 
 uniform sampler2D font_texture : hint_albedo;
+uniform vec2 viewport_size;
+uniform float clip_factor;
+uniform float clip_offset;
+
 varying vec4 frag_color;
 varying vec2 frag_uv;
 
@@ -38,9 +42,26 @@ void vertex() {
 	
 }
 
+// this is kind of awful and it would be nice if there is a better way
+bool is_within_clip_rect(vec4 clip_rect, vec2 point) {
+	return (point.x >= clip_rect.x && point.x <= clip_rect.z &&
+			point.y >= (clip_rect.w - clip_rect.y) / 6.0 && point.y <= clip_rect.w);
+}
+
 void fragment() {
 	
-	ALBEDO = frag_color.rgb * texture(font_texture, frag_uv).rgb;
-	ALPHA = frag_color.a * texture(font_texture, frag_uv).a;
+	vec2 screen_pos = vec2(FRAGCOORD.x, viewport_size.y - FRAGCOORD.y + clip_offset);
+	vec4 clip_rect = vec4(NORMAL.x, NORMAL.y, UV2.x, UV2.y);
+	if (!is_within_clip_rect(clip_rect, screen_pos)) {
+		if (viewport_size.x == clip_rect.z && viewport_size.y == clip_rect.w) {
+			ALBEDO = frag_color.rgb * texture(font_texture, frag_uv).rgb;
+			ALPHA = frag_color.a * texture(font_texture, frag_uv).a;
+		} else {
+			ALPHA = 0.0;
+		}
+	} else {
+		ALBEDO = frag_color.rgb * texture(font_texture, frag_uv).rgb;
+		ALPHA = frag_color.a * texture(font_texture, frag_uv).a;
+	}
 	
 }
