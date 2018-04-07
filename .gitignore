@@ -16,3 +16,4 @@ three-dlang-test-*
 .vscode
 three-dlang
 *.so
+.import
