@@ -114,9 +114,7 @@ class ImguiContext : GodotScript!Spatial {
 			if (key.pressed) {
 				if (key.scancode >= 32 && key.scancode <= 255) {
 					pressed_keys[pressed_index] = cast(ubyte)key.scancode;
-					print(pressed_keys[pressed_index]);
 					pressed_index += 1;
-					print("PRESSO", pressed_index);
 				}
 			}
 		}
