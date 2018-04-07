@@ -53,16 +53,16 @@ class ImguiContext : GodotScript!Spatial {
 		keyTab, 		// ImGuiKey_Tab
 		keyLeft, 		// ImGuiKey_LeftArrow
 		keyRight, 		// ImGuiKey_RightArrow
-		keyPageup,		// ImGuiKey_Pageup
-		keyPagedown,	// ImGuiKey_Pagedown
 		keyUp, 			// ImGuiKey_UpArrow
 		keyDown, 		// ImGuiKey_DownArrow
+		keyPageup,		// ImGuiKey_Pageup
+		keyPagedown,	// ImGuiKey_Pagedown
 		keyHome, 		// ImGuiKey_Home
 		keyEnd, 		// ImGuiKey_End
-		keyBackspace, 	// ImGuiKey_Backspace
 		keyDelete, 		// ImGuiKey_Delete
-		keyEscape,		// ImGuiKey_Escape
+		keyBackspace, 	// ImGuiKey_Backspace
 		keyEnter,		// ImGuiKey_Enter
+		keyEscape,		// ImGuiKey_Escape
 		keyA,			// ImGuiKey_A
 		keyC,			// ImGuiKey_C
 		keyV,			// ImGuiKey_V
@@ -110,6 +110,8 @@ class ImguiContext : GodotScript!Spatial {
 	@Method
 	void _input(InputEvent ev) {
 
+		if (g_focused) return;
+
 		if (InputEventKey key = cast(InputEventKey) ev) {
 			if (key.pressed) {
 				if (key.scancode >= 32 && key.scancode <= 255) {
@@ -130,32 +132,6 @@ class ImguiContext : GodotScript!Spatial {
 		}
 
 	}
-
-	/*
-	static immutable (char)* inputs;
-
-	@Method
-	void _input(InputEvent ev) {
-		if (InputEventKey key = cast(InputEventKey)ev) {
-			if (igIsAnyItemActive() && key.pressed) {
-				auto sc = key.scancode;
-				if (sc == keyLeft ||
-					sc == keyRight ||
-					sc == keyPageup ||
-					sc == keyPagedown ||
-					sc == keyUp ||
-					sc == keyDown ||
-					sc == keyHome ||
-					sc == keyEnd ||
-					sc == keyBackspace ||
-					sc == keyDelete ||
-					sc == keyEscape ||
-					sc == keyEnter) return;
-				inputs = key.unicode;
-			}
-		}
-	}
-	*/
 
 	// internal functions
 	void initialize() {
@@ -325,26 +301,13 @@ class ImguiContext : GodotScript!Spatial {
 
 			if (igIsAnyItemActive() && !igIsMouseDown(0)) {
 
-				/*
-				foreach (i; 32 .. 256) {
-					import godot.os;
-					if (Input.isKeyPressed(i) && OS.getTicksMsec() - last_press_time > key_repeat_delay) {
-						if (i >= 32 && i <= 255) {
-							ImGuiIO_AddInputCharacter(cast(ubyte)i);
-						}
-						print(cast(ubyte)i);
-						last_press_time = OS.getTicksMsec();
-					}
-				}
-				*/
-
 				foreach (sc; pressed_keys) {
 					ImGuiIO_AddInputCharacter(cast(ubyte)sc);
 				}
 
 				pressed_keys[0..16] = 0;
 				pressed_index = 0;
-
+				
 				foreach (i, k; Keys) {
 					io.KeysDown[i] = Input.isKeyPressed(k);
 				}
@@ -355,9 +318,9 @@ class ImguiContext : GodotScript!Spatial {
 				}
 			}
 
-			io.KeyCtrl = Input.isKeyPressed(keyMaskCtrl);
-			io.KeyShift = Input.isKeyPressed(keyMaskShift);
-			io.KeyAlt = Input.isKeyPressed(keyMaskAlt);
+			io.KeyCtrl = Input.isKeyPressed(keyControl);
+			io.KeyShift = Input.isKeyPressed(keyShift);
+			io.KeyAlt = Input.isKeyPressed(keyAlt);
 
 			io.MouseWheel += scroll_wheel;
 			scroll_wheel = 0;

@@ -57,7 +57,9 @@ class Player : GodotScript!KinematicBody {
     float GRAVITON = 9.8f / 16; // 9.8 WHAT
     float MAX_MOVEMENT_SPEED = 18.0f; // SOME SHIT PER SECOND
     float MOVEMENT_SPEED = 1.5f; // .. what per second?
+    float JUMP_HEIGHT = 32.0f;
     float ACCELERATION = 10.0f;
+    float FRICTION = 1.2705f;
 
     alias owner this;
 
@@ -71,6 +73,7 @@ class Player : GodotScript!KinematicBody {
     @OnReady!"camera" Camera camera;
     @OnReady!"caster" RayCast caster;
     @OnReady!"collision" CollisionShape collision;
+    bool moving_again = false;
 
     @Method
     void _ready() {
@@ -83,9 +86,16 @@ class Player : GodotScript!KinematicBody {
 
         if (InputEventMouseMotion mouse_ev = cast(InputEventMouseMotion)ev) {
             if (focused) {
-                auto pos = mouse_ev.position;
-                last_mouse_delta = last_mouse_pos - pos;
-                last_mouse_pos = pos;
+                if (!moving_again) {
+                    auto pos = mouse_ev.position;
+                    last_mouse_delta = Vector2.init;
+                    last_mouse_pos = pos;
+                    moving_again = true;
+                } else {
+                    auto pos = mouse_ev.position;
+                    last_mouse_delta = last_mouse_pos - pos;
+                    last_mouse_pos = pos;
+                }
             }
         }
 
@@ -93,6 +103,7 @@ class Player : GodotScript!KinematicBody {
             if (key.isAction("ui_cancel") && key.pressed) {
                 focused = !focused;
                 if (!focused) {
+                    moving_again = false;
                     Input.setMouseMode(Input.MouseMode.mouseModeVisible);
                 } else {
                     Input.setMouseMode(Input.MouseMode.mouseModeCaptured);
@@ -115,9 +126,11 @@ class Player : GodotScript!KinematicBody {
 
             static bool opened = true;
             igBegin("Player", &opened, ImGuiWindowFlags_AlwaysAutoResize);
-            igInputFloat("gravity", &GRAVITON);
-            igInputFloat("max movement speed", &MAX_MOVEMENT_SPEED);
-            igInputFloat("movement speed", &MOVEMENT_SPEED);
+            igSliderFloat("gravity", &GRAVITON, 0.0f, 10.0);
+            igSliderFloat("max movement speed", &MAX_MOVEMENT_SPEED, 0.0f, 100.0f);
+            igSliderFloat("movement speed", &MOVEMENT_SPEED, 0.0f, 100.0);
+            igSliderFloat("jump height", &JUMP_HEIGHT, 0.0f, 64.0f);
+            igSliderFloat("friction", &FRICTION, 0.0f, 5.0f);
             igEnd();
 
         }
@@ -145,7 +158,7 @@ class Player : GodotScript!KinematicBody {
             }
 
             if (Input.isActionJustPressed(PlayerActions.Jump) && isOnFloor()) {
-                vel += Vector3(0, 1, 0) * 32.0f;
+                vel += Vector3(0, 1, 0) * JUMP_HEIGHT;
             }
 
             if (last_mouse_delta != Vector3.init) {
@@ -185,8 +198,8 @@ class Player : GodotScript!KinematicBody {
 
         moveAndSlide(transform.basis.orthonormalized.xform(clamped_combined), Vector3(0, 1, 0));
         velocity = clamped_combined;
-        velocity.x /= 1.2705;
-        velocity.z /= 1.2705;
+        velocity.x /= FRICTION;
+        velocity.z /= FRICTION;
 
     }
 
