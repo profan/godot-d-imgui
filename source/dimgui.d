@@ -292,8 +292,8 @@ class ImguiContext : GodotScript!Spatial {
 			io.MousePos = ImVec2(mouse_pos.x, mouse_pos.y);
 
 			io.MouseDown[0] = Input.isMouseButtonPressed(buttonLeft);
-			io.MouseDown[1] = Input.isMouseButtonPressed(buttonMiddle);
-			io.MouseDown[2] = Input.isMouseButtonPressed(buttonRight);
+			io.MouseDown[2] = Input.isMouseButtonPressed(buttonMiddle);
+			io.MouseDown[1] = Input.isMouseButtonPressed(buttonRight);
 
 			if (igIsAnyItemActive() && !igIsMouseDown(0)) {
 

@@ -125,7 +125,7 @@ class Player : GodotScript!KinematicBody {
             igShowDemoWindow(&showDemoWindow);
 
             static bool opened = true;
-            igBegin("Player", &opened, ImGuiWindowFlags_AlwaysAutoResize);
+            igBegin("Player", &opened, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
             igSliderFloat("gravity", &GRAVITON, 0.0f, 10.0);
             igSliderFloat("max movement speed", &MAX_MOVEMENT_SPEED, 0.0f, 100.0f);
             igSliderFloat("movement speed", &MOVEMENT_SPEED, 0.0f, 100.0);
