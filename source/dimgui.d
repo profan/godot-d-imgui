@@ -80,8 +80,6 @@ class ImguiContext : GodotScript!Spatial {
 
 	// WHEELU
 	float scroll_wheel = 0.0f;
-	float last_press_time = 0.0f;
-	float key_repeat_delay = 100.0f; // milliseconds
 	ubyte[16] pressed_keys;
 	ubyte pressed_index;
 
