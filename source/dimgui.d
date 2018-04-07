@@ -43,6 +43,8 @@ import godot.texture;
 import godot.mesh;
 import godot;
 
+import globals : g_focused;
+
 class ImguiContext : GodotScript!Spatial {
     import derelict.imgui.imgui;
 	import godot.globalconstants;
@@ -69,7 +71,7 @@ class ImguiContext : GodotScript!Spatial {
 		keyZ			// ImGuiKey_Z
 	];
 
-	// if these don't match, we done fucked up
+	// if these don't match, we done fucked uplong
 	static assert(Keys.length == ImGuiKey_COUNT);
 
 	// godot related resources
@@ -78,6 +80,10 @@ class ImguiContext : GodotScript!Spatial {
 
 	// WHEELU
 	float scroll_wheel = 0.0f;
+	float last_press_time = 0.0f;
+	float key_repeat_delay = 100.0f; // milliseconds
+	ubyte[16] pressed_keys;
+	ubyte pressed_index;
 
 	@Method
 	void _ready() {
@@ -103,6 +109,18 @@ class ImguiContext : GodotScript!Spatial {
 
 	@Method
 	void _input(InputEvent ev) {
+
+		if (InputEventKey key = cast(InputEventKey) ev) {
+			if (key.pressed) {
+				if (key.scancode >= 32 && key.scancode <= 255) {
+					pressed_keys[pressed_index] = cast(ubyte)key.scancode;
+					print(pressed_keys[pressed_index]);
+					pressed_index += 1;
+					print("PRESSO", pressed_index);
+				}
+			}
+		}
+
 		if (InputEventMouseButton btn = cast(InputEventMouseButton) ev) {
 			if (btn.buttonIndex == buttonWheelUp && btn.pressed) {
 				scroll_wheel += 1;
@@ -110,6 +128,7 @@ class ImguiContext : GodotScript!Spatial {
 				scroll_wheel -= 1;
 			}
 		}
+
 	}
 
 	/*
@@ -195,9 +214,9 @@ class ImguiContext : GodotScript!Spatial {
 
 		int bytes_to_copy = width * height * bytes_per_pixel;
 		PoolByteArray bytes = PoolByteArray();
-		print("copying: ", bytes_to_copy, " bytes into PoolByteArray.");
+		bytes.resize(bytes_to_copy);
 		foreach (i; 0..bytes_to_copy) {
-			bytes.append(pixels[i]);
+			bytes[i] = pixels[i];
 		}
 
 		Ref!Image tex_img = memnew!Image();
@@ -282,6 +301,7 @@ class ImguiContext : GodotScript!Spatial {
 		import godot.os;
 		return OS.clipboard.utf8().ptr;
 	}
+	import core.stdc.string : strcmp;
 
 	void newFrame(float dt) {
 
@@ -294,27 +314,55 @@ class ImguiContext : GodotScript!Spatial {
 		io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
 		io.DeltaTime = dt;
 		
-		Vector2 mouse_pos = owner.getViewport().getMousePosition();
-		io.MousePos = ImVec2(mouse_pos.x, mouse_pos.y);
+		if (!g_focused) {
 
-		io.MouseDown[0] = Input.isMouseButtonPressed(buttonLeft);
-		io.MouseDown[1] = Input.isMouseButtonPressed(buttonMiddle);
-		io.MouseDown[2] = Input.isMouseButtonPressed(buttonRight);
+			Vector2 mouse_pos = owner.getViewport().getMousePosition();
+			io.MousePos = ImVec2(mouse_pos.x, mouse_pos.y);
 
-		foreach (i, k; Keys) {
-			io.KeysDown[i] = Input.isKeyPressed(k);
+			io.MouseDown[0] = Input.isMouseButtonPressed(buttonLeft);
+			io.MouseDown[1] = Input.isMouseButtonPressed(buttonMiddle);
+			io.MouseDown[2] = Input.isMouseButtonPressed(buttonRight);
+
+			if (igIsAnyItemActive() && !igIsMouseDown(0)) {
+
+				/*
+				foreach (i; 32 .. 256) {
+					import godot.os;
+					if (Input.isKeyPressed(i) && OS.getTicksMsec() - last_press_time > key_repeat_delay) {
+						if (i >= 32 && i <= 255) {
+							ImGuiIO_AddInputCharacter(cast(ubyte)i);
+						}
+						print(cast(ubyte)i);
+						last_press_time = OS.getTicksMsec();
+					}
+				}
+				*/
+
+				foreach (sc; pressed_keys) {
+					ImGuiIO_AddInputCharacter(cast(ubyte)sc);
+				}
+
+				pressed_keys[0..16] = 0;
+				pressed_index = 0;
+
+				foreach (i, k; Keys) {
+					io.KeysDown[i] = Input.isKeyPressed(k);
+				}
+
+			} else {
+				foreach (i, k; Keys) {
+					io.KeysDown[i] = Input.isKeyPressed(k);
+				}
+			}
+
+			io.KeyCtrl = Input.isKeyPressed(keyMaskCtrl);
+			io.KeyShift = Input.isKeyPressed(keyMaskShift);
+			io.KeyAlt = Input.isKeyPressed(keyMaskAlt);
+
+			io.MouseWheel += scroll_wheel;
+			scroll_wheel = 0;
+
 		}
-
-		io.KeyCtrl = Input.isKeyPressed(keyMaskCtrl);
-		io.KeyShift = Input.isKeyPressed(keyMaskShift);
-		io.KeyAlt = Input.isKeyPressed(keyMaskAlt);
-
-		if (igIsAnyItemActive()) {
-			ImGuiIO_AddInputCharacter(cast(ulong)65);
-		}
-
-		io.MouseWheel += scroll_wheel;
-		scroll_wheel = 0;
 
 		// finally call back into imgui
 		igNewFrame();

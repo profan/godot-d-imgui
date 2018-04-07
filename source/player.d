@@ -50,6 +50,8 @@ Vector3 right(Transform t) {
     return t.basis.x;
 }
 
+import globals : focused = g_focused;
+
 class Player : GodotScript!KinematicBody {
 
     float GRAVITON = 9.8f / 16; // 9.8 WHAT
@@ -63,8 +65,6 @@ class Player : GodotScript!KinematicBody {
     Vector3 direction;
     Vector2 last_mouse_pos;
     Vector2 last_mouse_delta;
-
-    bool focused = false;
     import std.math : PI_4;
     float yaw = 0.0f, pitch = 0.0f;
 
@@ -79,6 +79,8 @@ class Player : GodotScript!KinematicBody {
     @Method
     void _input(InputEvent ev) {
 
+        import derelict.imgui.imgui;
+
         if (InputEventMouseMotion mouse_ev = cast(InputEventMouseMotion)ev) {
             if (focused) {
                 auto pos = mouse_ev.position;
@@ -90,8 +92,14 @@ class Player : GodotScript!KinematicBody {
         if (InputEventKey key = cast(InputEventKey) ev) {
             if (key.isAction("ui_cancel") && key.pressed) {
                 focused = !focused;
-                if (!focused) Input.setMouseMode(Input.MouseMode.mouseModeVisible);
-                else Input.setMouseMode(Input.MouseMode.mouseModeCaptured);
+                if (!focused) {
+                    Input.setMouseMode(Input.MouseMode.mouseModeVisible);
+                } else {
+                    Input.setMouseMode(Input.MouseMode.mouseModeCaptured);
+                    auto pos = owner.getViewport().getMousePosition();
+                    last_mouse_delta = Vector2();
+                    last_mouse_pos = pos;
+                }
             }
         }
 
@@ -105,7 +113,8 @@ class Player : GodotScript!KinematicBody {
 
             igShowDemoWindow(&showDemoWindow);
 
-            igBegin("Player");
+            static bool opened = true;
+            igBegin("Player", &opened, ImGuiWindowFlags_AlwaysAutoResize);
             igInputFloat("gravity", &GRAVITON);
             igInputFloat("max movement speed", &MAX_MOVEMENT_SPEED);
             igInputFloat("movement speed", &MOVEMENT_SPEED);

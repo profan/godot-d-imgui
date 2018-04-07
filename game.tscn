@@ -46,7 +46,7 @@ subdivide_depth = 0
 
 extents = Vector3( 2.125, 1, 1 )
 
-[node name="game" type="Spatial" index="0"]
+[node name="game" type="Spatial"]
 
 script = ExtResource( 1 )
 
