@@ -16,7 +16,8 @@ enum PlayerActions : const (char)* {
     SecondaryFire = "player_secondary",
     Jump = "player_jump",
     Crouch = "player_crouch",
-    Noclip = "player_noclip"
+    Noclip = "player_noclip",
+    DebugDraw = "player_debugdraw"
 }
 
 Vector3 x(ref Basis b) {
@@ -123,6 +124,11 @@ class Player : GodotScript!KinematicBody {
             } else if (key.isAction(PlayerActions.Noclip) && key.pressed) {
                 g_noclip = !g_noclip;
                 collision.disabled = g_noclip;
+            } else if (key.isAction(PlayerActions.DebugDraw) && key.pressed) {
+                auto vp = owner.getViewport();
+                auto cur_mode = vp.debugDraw;
+                cur_mode = cast(Viewport.DebugDraw)((cast(int)cur_mode + 1) % cast(int)Viewport.DebugDraw.max);
+                vp.debugDraw = cur_mode;
             }
         }
 
@@ -209,7 +215,7 @@ class Player : GodotScript!KinematicBody {
             igValueFloat("camera pitch", rad2deg(pitch) % 360);
             igValueFloat("camera yaw", rad2deg(yaw) % 360);
             igValueBool("noclip enabled", g_noclip);
-            igInputFloat("noclip speed", &NOCLIP_SPEED);
+            igSliderFloat("noclip speed", &NOCLIP_SPEED, 1.0f, 40.0f);
             igValueFloat("collision safe margin", collisionSafeMargin);
             bool do_reset = igButton("reset player position");
             if (do_reset) transform = original_transform;
@@ -222,6 +228,7 @@ class Player : GodotScript!KinematicBody {
     void _physics_process(float delta) {
 
         auto vel = Vector3();
+        if (g_noclip) velocity = Vector3.init;
 
         if (focused) {
 
@@ -300,7 +307,6 @@ class Player : GodotScript!KinematicBody {
         velocity.z /= FRICTION;
 
         if (isOnFloor) velocity.y = 0;
-        if (g_noclip) velocity = Vector3.init;
 
     }
 

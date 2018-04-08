@@ -112,15 +112,7 @@ class ImguiContext : GodotScript!Spatial {
 
 	@Method
 	void _process(float delta) {
-		
 		newFrame(delta);
-
-		auto vp_size = owner.getViewport().size;
-		float width = vp_size.x;
-		float height = vp_size.y;
-		// igSliderFloat("clip_factor", &clip_factor, 0.0f, 20.0f);
-		// igSliderFloat("clip_offset", &clip_offset, -height, height);
-
 	}
 
 	@Method
