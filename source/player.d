@@ -134,7 +134,7 @@ class Player : GodotScript!KinematicBody {
         import derelict.imgui.imgui;
         if (igGetFrameCount() > 0) {
 
-            // igShowDemoWindow(&showDemoWindow);
+            // igShowDemoWindow(&showDemoWindow)i;
 
             static long current_screen;
             static Vector2 last_window_size;
@@ -142,8 +142,16 @@ class Player : GodotScript!KinematicBody {
             static float max_gravity = 8.0f;
             static bool process_status;
 
+            static int total_frames_below_sixty;
+
+            if (delta > (1000.0f/60.0f)) total_frames_below_sixty += 1;
+
             igBegin("Godot", &process_status, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_AlwaysAutoResize);
             igText("frametime: %2.2f ms (%.1f FPS)", 1000.0f / igGetIO().Framerate, igGetIO().Framerate);
+            if (igTreeNode("frametime stats")) {
+                igText("- frames below 60: %d", total_frames_below_sixty);
+                igTreePop();
+            }
             float dynamic_mem_mbytes = (OS.getDynamicMemoryUsage() / 1000.0) / 1000.0f;
             igText("dynamic memory usage: %2.2f MB", dynamic_mem_mbytes);
             float static_mem_mbytes = (OS.getStaticMemoryUsage() / 1000.0) / 1000.0f;
@@ -155,12 +163,12 @@ class Player : GodotScript!KinematicBody {
             Viewport vp = owner.getViewport();
             auto vp_size = vp.size;
             igText("viewport size: %d x %d", cast(int)vp_size.x, cast(int)vp_size.y);
-            igText(" - objects: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoObjectsInFrame));
-            igText(" - vertices: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoVerticesInFrame));
-            igText(" - drawcalls: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoDrawCallsInFrame));
-            igText(" - material changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoMaterialChangesInFrame));
-            igText(" - surface changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoSurfaceChangesInFrame));
-            igText(" - shader changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoShaderChangesInFrame));
+            igText("- objects: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoObjectsInFrame));
+            igText("- vertices: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoVerticesInFrame));
+            igText("- drawcalls: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoDrawCallsInFrame));
+            igText("- material changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoMaterialChangesInFrame));
+            igText("- surface changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoSurfaceChangesInFrame));
+            igText("- shader changes: %d", vp.getRenderInfo(Viewport.RenderInfo.renderInfoShaderChangesInFrame));
             if (OS.isWindowFullscreen()) {
                 if (igButton("go windowed")) {
                     OS.setWindowFullscreen(false);
