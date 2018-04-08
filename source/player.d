@@ -15,7 +15,8 @@ enum PlayerActions : const (char)* {
     PrimaryFire = "player_primary",
     SecondaryFire = "player_secondary",
     Jump = "player_jump",
-    Crouch = "player_crouch"
+    Crouch = "player_crouch",
+    Noclip = "player_noclip"
 }
 
 Vector3 x(ref Basis b) {
@@ -50,7 +51,7 @@ Vector3 right(Transform t) {
     return t.basis.x;
 }
 
-import globals : focused = g_focused;
+import globals : focused = g_focused, g_noclip;
 
 class Player : GodotScript!KinematicBody {
 
@@ -60,6 +61,9 @@ class Player : GodotScript!KinematicBody {
     float JUMP_HEIGHT = 32.0f;
     float ACCELERATION = 10.0f;
     float FRICTION = 1.2705f;
+
+    // noclip
+    float NOCLIP_SPEED = 12.0f;
 
     alias owner this;
 
@@ -116,6 +120,9 @@ class Player : GodotScript!KinematicBody {
                     last_mouse_delta = Vector2();
                     last_mouse_pos = pos;
                 }
+            } else if (key.isAction(PlayerActions.Noclip) && key.pressed) {
+                g_noclip = !g_noclip;
+                collision.disabled = g_noclip;
             }
         }
 
@@ -201,6 +208,8 @@ class Player : GodotScript!KinematicBody {
             igValueBool("is on floor", isOnFloor);
             igValueFloat("camera pitch", rad2deg(pitch) % 360);
             igValueFloat("camera yaw", rad2deg(yaw) % 360);
+            igValueBool("noclip enabled", g_noclip);
+            igInputFloat("noclip speed", &NOCLIP_SPEED);
             igValueFloat("collision safe margin", collisionSafeMargin);
             bool do_reset = igButton("reset player position");
             if (do_reset) transform = original_transform;
@@ -232,7 +241,9 @@ class Player : GodotScript!KinematicBody {
 
             if (Input.isActionJustPressed(PlayerActions.Jump) && isOnFloor()) {
                 vel += Vector3(0, 1, 0) * JUMP_HEIGHT;
-            }
+            } else if (Input.isActionPressed(PlayerActions.Jump) && g_noclip) {
+                vel += Vector3(0, 1, 0) * JUMP_HEIGHT;
+            } 
 
             if (Input.isActionJustPressed(PlayerActions.Crouch)) {
                 camera.transform = Transform(camera.transform.basis, Vector3(0.0, 0.5, 0.0));
@@ -256,8 +267,14 @@ class Player : GodotScript!KinematicBody {
                     pitch = -PI_2 + 0.001;
                 }
 
-                rotation = Vector3(0, yaw, 0);
-                camera.rotation = Vector3(pitch, 0, 0);
+                if (g_noclip) {
+                    rotation = Vector3(0, yaw, 0);
+                    rotation = rotation + Vector3(pitch, 0, 0);
+                    camera.rotation = Vector3.init;
+                } else {
+                    rotation = Vector3(0, yaw, 0);
+                    camera.rotation = Vector3(pitch, 0, 0);
+                }
                 last_mouse_delta.x = 0;
                 last_mouse_delta.y = 0;
 
@@ -269,8 +286,10 @@ class Player : GodotScript!KinematicBody {
         auto clamped_velocity = min(MAX_MOVEMENT_SPEED, (vel + velocity).length);
 
         Vector3 clamped_combined;
-        if (!isOnFloor) {
+        if (!isOnFloor && !g_noclip) {
             clamped_combined = (vel + velocity).normalized * clamped_velocity + Vector3(0, -1, 0) * GRAVITON;
+        } else if (g_noclip) {
+            clamped_combined = (vel + velocity).normalized * NOCLIP_SPEED;
         } else {
             clamped_combined = (vel + velocity).normalized * clamped_velocity;
         }
@@ -281,6 +300,7 @@ class Player : GodotScript!KinematicBody {
         velocity.z /= FRICTION;
 
         if (isOnFloor) velocity.y = 0;
+        if (g_noclip) velocity = Vector3.init;
 
     }
 
