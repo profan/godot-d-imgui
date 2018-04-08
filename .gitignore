@@ -17,3 +17,5 @@ three-dlang-test-*
 three-dlang
 *.so
 .import
+bwong.x86_64
+bwong.pck

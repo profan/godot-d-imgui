@@ -227,8 +227,7 @@ class ImguiContext : GodotScript!Spatial {
 		import godot.shadermaterial;
 		Ref!ShaderMaterial sm = cast(Ref!ShaderMaterial)ig.getMaterialOverride();
 		sm.setShaderParam("viewport_size", vp_size);
-		sm.setShaderParam("clip_factor", clip_factor);
-		sm.setShaderParam("clip_offset", clip_offset);
+		sm.setShaderParam("font_texture", Variant(font_texture));
 
 		ig.clear();
 		foreach (n; 0..data.CmdListsCount) {
@@ -246,19 +245,11 @@ class ImguiContext : GodotScript!Spatial {
 
 			foreach (i; 0..cmd_count) {
 				
-				bool skip = false;
 				ImDrawCmd* pcmd = ImDrawList_GetCmdPtr(cmd_list, i);
 
 				if (pcmd.UserCallback) {
 					pcmd.UserCallback(cmd_list, pcmd);
 				} else {
-
-					// bind texture, scissor, draw command here
-					if (pcmd.TextureId != null) {
-						sm.setShaderParam("font_texture", Variant(font_texture));
-					} else {
-						sm.setShaderParam("font_texture", Variant(null));
-					}
 
 					ig.begin(Mesh.PrimitiveType.primitiveTriangles);
 					foreach (e_i; 0_..pcmd.ElemCount) {

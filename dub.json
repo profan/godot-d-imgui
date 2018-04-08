@@ -15,7 +15,7 @@
 			"name": "32",
 			"targetType": "dynamicLibrary",
 			"targetName": "three-dlang-32",
-			"dflags": ["-g"],
+			"dflags": [],
 			"dependencies": {
 				"derelict-imgui": "~>0.10.0",
 				"godot-d": "~>0.0.2"
@@ -25,7 +25,7 @@
 			"name": "64",
 			"targetType": "dynamicLibrary",
 			"targetName": "three-dlang-64",
-			"dflags": ["-g", "-m64"],
+			"dflags": ["-m64"],
 			"dependencies": {
 				"derelict-imgui": "~>0.10.0",
 				"godot-d": "~>0.0.2"
