@@ -17,7 +17,8 @@ enum PlayerActions : const (char)* {
     Jump = "player_jump",
     Crouch = "player_crouch",
     Noclip = "player_noclip",
-    DebugDraw = "player_debugdraw"
+    DebugDraw = "player_debugdraw",
+    Sprint = "player_sprint"
 }
 
 Vector3 x(ref Basis b) {
@@ -211,6 +212,7 @@ class Player : GodotScript!KinematicBody {
             igSliderFloat("friction", &FRICTION, 0.0f, 2.0f);
             igInputFloat3("camera origin", camera.transform.origin, -1, ImGuiInputTextFlags_ReadOnly);
             igValueBool("crouching", Input.isActionPressed(PlayerActions.Crouch));
+            igValueBool("sprinting", Input.isActionPressed(PlayerActions.Sprint));
             igValueBool("is on floor", isOnFloor);
             igValueFloat("camera pitch", rad2deg(pitch) % 360);
             igValueFloat("camera yaw", rad2deg(yaw) % 360);
@@ -290,6 +292,8 @@ class Player : GodotScript!KinematicBody {
         }
 
         import std.algorithm : max, min;
+        if (Input.isActionPressed(PlayerActions.Crouch)) vel *= 0.3;
+        else if (Input.isActionPressed(PlayerActions.Sprint)) vel *= 1.5;
         auto clamped_velocity = min(MAX_MOVEMENT_SPEED, (vel + velocity).length);
 
         Vector3 clamped_combined;
