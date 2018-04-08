@@ -112,6 +112,7 @@ class ImguiContext : GodotScript!Spatial {
 
 	@Method
 	void _process(float delta) {
+		
 		newFrame(delta);
 
 		auto vp_size = owner.getViewport().size;
